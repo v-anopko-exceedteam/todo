@@ -5,6 +5,7 @@ import SearchPanel from './../SearchPanel';
 import TodoList from './../TodoList';
 import ItemStatusFilter from './../ItemStatusFilter';
 import AddItem from './../AddItem';
+import TodoDataService from './../../services/TodoDataService';
 
 import './App.css';
 
@@ -13,8 +14,7 @@ export default class App extends Component {
   constructor() {
     super();
 
-    // свойство для добавления id к todo элементам
-    this.maxId = 100;
+    this.todoService = new TodoDataService();
 
     // создание toDo элемента
     this.createToDoItem = (label) => {
@@ -22,16 +22,11 @@ export default class App extends Component {
         label,
         important: false,
         done: false,
-        id: this.maxId++,
       };
     };
 
     this.state = {
-      todoData: [
-        this.createToDoItem('Drink coffee!'),
-        this.createToDoItem('Have a lunch!'),
-        this.createToDoItem('Go to interview!'),
-      ],
+      todoData: [],
       term: '',
       filterMode: 'all',
     };
@@ -88,13 +83,15 @@ export default class App extends Component {
 
     // Обработчик события добавления элемента списка по клику
     this.addItemOnClick = (text) => {
-      this.setState(({todoData}) => {
-        const newListElement = this.createToDoItem(text);
+      const newListElement = this.createToDoItem(text);
 
+      this.setState(({todoData}) => {
         return({
           todoData: [...todoData, newListElement],
         });
       });
+
+      this.todoService.addNewTodoElement(newListElement);
     };
 
     // обработчик события нажатия done
@@ -152,8 +149,12 @@ export default class App extends Component {
 
   } // END constructor
 
-  render() {
+  componentDidMount() {
+    this.todoService.getAllTodoElement()
+      .then((todoItems) => this.setState({todoData: todoItems}));
+  }
 
+  render() {
     const {todoData, term, filterMode} = this.state,
           visibleItem      = this.searchFilter(this.filterElements(filterMode), term),
           doneCount        = todoData.filter( (el) => el.done ).length,
@@ -161,21 +162,21 @@ export default class App extends Component {
 
     return (
       <div className="todo-app">
-      <AppHeader toDo={todoCount}
-      done={doneCount} />
-      <div className="top-panel d-flex">
-      <SearchPanel searchElementOnChange={this.searchElementOnChange} />
-      <ItemStatusFilter filterElementsOnClick={this.filterElementsOnClick}
-                        filterMode={filterMode} />
-      </div>
+        <AppHeader toDo={todoCount}
+        done={doneCount} />
+        <div className="top-panel d-flex">
+          <SearchPanel searchElementOnChange={this.searchElementOnChange} />
+          <ItemStatusFilter filterElementsOnClick={this.filterElementsOnClick}
+                            filterMode={filterMode} />
+        </div>
 
-      <TodoList todos={visibleItem}
-      onDeleted={this.deleteItem}
-      onToggleDone={this.onToggleDone}
-      onToggleImportant={this.onToggleImportant}
-      />
+        <TodoList todos={visibleItem}
+        onDeleted={this.deleteItem}
+        onToggleDone={this.onToggleDone}
+        onToggleImportant={this.onToggleImportant}
+        />
 
-      <AddItem onAddItem={this.addItemOnClick}/>
+        <AddItem onAddItem={this.addItemOnClick}/>
       </div>
     );
   }
