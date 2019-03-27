@@ -25,10 +25,11 @@ export default class AddItem extends Component {
     return(
       <form className="item-add-form d-flex"
             onSubmit={this.onSubmitForm}>
+            
         <input type="text"
                className="form-control"
                placeholder="What needs to be done"
-               onChange={this.labelOnChange}/>
+               onChange={this.labelOnChange} />
 
         <button className="btn btn-outline-secondary">Add item</button>
       </form>

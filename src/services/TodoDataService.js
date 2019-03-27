@@ -1,13 +1,11 @@
 export default class TodoDataService {
-
   async serviceRequest(mode = '', modeValue = '') {
     const serviceUri       = `http://localhost:3001/${mode + modeValue}`,
           serviceResponse  = await fetch(serviceUri),
           responseBody     = await serviceResponse.json();
 
     if (!serviceResponse.ok) {
-      throw new Error(`Could not fetch ${serviceResponse.url}` +
-        `, received ${serviceResponse.status}`);
+      throw new Error(`Could not fetch ${serviceResponse.url}, received ${serviceResponse.status}`);
     }
 
     return responseBody;
@@ -20,11 +18,16 @@ export default class TodoDataService {
   }
 
   async addNewTodoElement(newElem) {
-    this.serviceRequest('add/', encodeURIComponent(JSON.stringify(newElem)));
+    const addedItem = await this.serviceRequest('add/', encodeURIComponent(JSON.stringify(newElem)));
+
+    return addedItem;
   }
 
-  async updateTodoElement(elemToUpdate) {}
+  updateTodoElement(elemToUpdate) {
+    this.serviceRequest('update/', encodeURIComponent(JSON.stringify(elemToUpdate)));
+  }
 
-  async deleteTodoElement(elemId) {}
-
+  deleteTodoElement(elemId) {
+    this.serviceRequest('delete/', elemId);
+  }
 }
