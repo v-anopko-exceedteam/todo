@@ -1,20 +1,17 @@
 import React, {Component} from 'react';
-
 import AppHeader from './../AppHeader';
 import SearchPanel from './../SearchPanel';
 import TodoList from './../TodoList';
 import ItemStatusFilter from './../ItemStatusFilter';
 import AddItem from './../AddItem';
-
+import TodoDataService from './../../services/TodoDataService';
 import './App.css';
 
 export default class App extends Component {
-
   constructor() {
     super();
 
-    // свойство для добавления id к todo элементам
-    this.maxId = 100;
+    this.todoService = new TodoDataService();
 
     // создание toDo элемента
     this.createToDoItem = (label) => {
@@ -22,16 +19,11 @@ export default class App extends Component {
         label,
         important: false,
         done: false,
-        id: this.maxId++,
       };
     };
 
     this.state = {
-      todoData: [
-        this.createToDoItem('Drink coffee!'),
-        this.createToDoItem('Have a lunch!'),
-        this.createToDoItem('Go to interview!'),
-      ],
+      todoData: [],
       term: '',
       filterMode: 'all',
     };
@@ -43,14 +35,16 @@ export default class App extends Component {
     propName - имя свойства
     */
     this.toggleProperty = (arr, id, propName) => {
-      const idx      = arr.findIndex( (el) => el.id === id),
+      const idx      = arr.findIndex( (el) => el._id === id),
             oldItem  = arr[idx],
             newItem  = {...oldItem, [propName]: !oldItem[propName]},
             newArray = [
-                        ...arr.slice(0, idx),
-                        newItem,
-                        ...arr.slice(idx + 1),
-                      ];
+              ...arr.slice(0, idx),
+              newItem,
+              ...arr.slice(idx + 1),
+            ];
+
+      this.todoService.updateTodoElement(newItem);
 
       return (newArray);
     };
@@ -74,27 +68,32 @@ export default class App extends Component {
     // Обработчик события удаления элемента списка по клику
     this.deleteItem = (deleteItemId) => {
       this.setState(({todoData}) => {
-        const idx         = todoData.findIndex( (el) => el.id === deleteItemId),
+        const idx         = todoData.findIndex( (el) => el._id === deleteItemId),
               newTodoData = [
-                              ...todoData.slice(0, idx),
-                              ...todoData.slice(idx + 1),
-                            ];
+                ...todoData.slice(0, idx),
+                ...todoData.slice(idx + 1),
+              ];
 
         return({
           todoData: newTodoData,
         });
       });
+
+      this.todoService.deleteTodoElement(deleteItemId);
     };
 
     // Обработчик события добавления элемента списка по клику
     this.addItemOnClick = (text) => {
-      this.setState(({todoData}) => {
-        const newListElement = this.createToDoItem(text);
+      const newListElement = this.createToDoItem(text);
 
-        return({
-          todoData: [...todoData, newListElement],
-        });
-      });
+      this.todoService.addNewTodoElement(newListElement)
+                      .then(elemToAdd => {
+                        this.setState(({todoData}) => {
+                          return({
+                            todoData: [...todoData, elemToAdd],
+                          });
+                        });
+                      });
     };
 
     // обработчик события нажатия done
@@ -108,11 +107,11 @@ export default class App extends Component {
 
     // обработчик события нажатия important
     this.onToggleImportant = (id) => {
-      this.setState( ({todoData}) => {
+      this.setState(({todoData}) => {
         return({
           todoData: this.toggleProperty(todoData, id, 'important'),
         });
-      } );
+      });
     };
 
     // обработчик filterElementsOnClick - принимает имя фильтра
@@ -132,28 +131,28 @@ export default class App extends Component {
 
     // обработчик searchElementOnChange - принимает строку из поля поиска
     this.searchElementOnChange = (str) => {
-      this.setState(() => {
-        return({
-          term: str,
-        });
-      });
+      this.setState({term: str});
     };
 
     // поиск по списку
     this.searchFilter = (elements, str) => {
       return elements.filter((element) => {
-                                            if (str == 0) {
-                                              return element;
-                                            }
+        if (str == 0) {
+          return element;
+        }
 
-                                            return element.label.indexOf(str) !== (-1)
-                                          });
+        return element.label.indexOf(str) !== (-1)
+      });
     };
 
   } // END constructor
 
-  render() {
+  componentDidMount() {
+    this.todoService.getAllTodoElement()
+                    .then((todoItems) => this.setState({todoData: todoItems}));
+  }
 
+  render() {
     const {todoData, term, filterMode} = this.state,
           visibleItem      = this.searchFilter(this.filterElements(filterMode), term),
           doneCount        = todoData.filter( (el) => el.done ).length,
@@ -161,21 +160,21 @@ export default class App extends Component {
 
     return (
       <div className="todo-app">
-      <AppHeader toDo={todoCount}
-      done={doneCount} />
-      <div className="top-panel d-flex">
-      <SearchPanel searchElementOnChange={this.searchElementOnChange} />
-      <ItemStatusFilter filterElementsOnClick={this.filterElementsOnClick}
-                        filterMode={filterMode} />
-      </div>
+        <AppHeader toDo={todoCount}
+                   done={doneCount} />
 
-      <TodoList todos={visibleItem}
-      onDeleted={this.deleteItem}
-      onToggleDone={this.onToggleDone}
-      onToggleImportant={this.onToggleImportant}
-      />
+        <div className="top-panel d-flex">
+          <SearchPanel searchElementOnChange={this.searchElementOnChange} />
+          <ItemStatusFilter filterElementsOnClick={this.filterElementsOnClick}
+                            filterMode={filterMode} />
+        </div>
 
-      <AddItem onAddItem={this.addItemOnClick}/>
+        <TodoList todos={visibleItem}
+                  onDeleted={this.deleteItem}
+                  onToggleDone={this.onToggleDone}
+                  onToggleImportant={this.onToggleImportant} />
+
+        <AddItem onAddItem={this.addItemOnClick}/>
       </div>
     );
   }

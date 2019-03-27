@@ -5,9 +5,9 @@ import './SearchPanel.css';
 const SearchPanel = ({searchElementOnChange}) => {
   return (
     <input type="text"
-          className="form-control search-input"
-          placeholder="type to search"
-          onChange={(evt) => searchElementOnChange(evt.target.value)} />
+           className="form-control search-input"
+           placeholder="type to search"
+           onChange={(evt) => searchElementOnChange(evt.target.value)} />
   );
 };
 
