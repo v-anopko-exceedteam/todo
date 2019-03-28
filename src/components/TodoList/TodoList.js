@@ -9,9 +9,9 @@ const TodoList = ({ todos, onDeleted, onToggleImportant, onToggleDone }) => {
     return(
       <li key={_id} className="list-group-item">
         <TodoListItem {...itemProps}
-                      onDeleted={ () => onDeleted(_id) }
-                      onToggleDone={ () => onToggleDone(_id) }
-                      onToggleImportant={ () => onToggleImportant(_id) } />
+                      onDeleted={() => onDeleted(_id)}
+                      onToggleDone={() => onToggleDone(_id)}
+                      onToggleImportant={() => onToggleImportant(_id)} />
       </li>
     );
   });
