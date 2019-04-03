@@ -1,0 +1,28 @@
+.askBlockForForm__ask {
+  display: block;
+  text-align: center;
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.askBlockForForm__ask::after {
+  position: absolute;
+  content: '';
+  width: 100%;
+  top: 50%;
+  left: 0;
+  height: 2px;
+  transform: translateY(-50%);
+  background-color: rgba(23, 162, 184, 0.4);
+  z-index: -1;
+}
+
+.askBlockForForm__ask span {
+  display: inline-block;
+  background-color: #fff;
+  padding: 0px 10px;
+}
+
+.askBlockForForm__btn {
+  width: 100%;
+}

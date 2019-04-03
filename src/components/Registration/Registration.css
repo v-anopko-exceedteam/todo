@@ -1,0 +1,7 @@
+@import "./../../style/forms/siteForm.css";
+@import "./../../style/forms/askBlockForForm.css";
+@import "./../../style/forms/formFieldsWrapper.css";
+
+.registrationForm__fieldsWrapper {
+  margin-bottom: 15px;
+}

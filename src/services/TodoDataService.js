@@ -1,7 +1,7 @@
 export default class TodoDataService {
-  async serviceRequest(mode = '', modeValue = '') {
+  async serviceRequest(mode = '', modeValue = '', settings = {}) {
     const serviceUri       = `http://localhost:3001/${mode + modeValue}`,
-          serviceResponse  = await fetch(serviceUri),
+          serviceResponse  = await fetch(serviceUri, settings),
           responseBody     = await serviceResponse.json();
 
     if (!serviceResponse.ok) {
@@ -11,8 +11,11 @@ export default class TodoDataService {
     return responseBody;
   }
 
-  async getAllTodoElement() {
-    const allTodoElement = await this.serviceRequest();
+  async getAllTodoElement(userId) {
+    const allTodoElement = await this.serviceRequest('', '', {
+      method: 'post',
+      body: userId,
+    });
 
     return allTodoElement;
   }
@@ -29,5 +32,23 @@ export default class TodoDataService {
 
   deleteTodoElement(elemId) {
     this.serviceRequest('delete/', elemId);
+  }
+
+  async registration(userInfo) {
+    const registrationStatus = await this.serviceRequest('registration', '', {
+      method: 'post',
+      body: JSON.stringify(userInfo),
+    });
+    
+    return registrationStatus;
+  }
+
+  async signIn(user) {
+    const userId = await this.serviceRequest('sign_in', '', {
+      method: 'post',
+      body: JSON.stringify(user),
+    });
+
+    return userId;
   }
 }
