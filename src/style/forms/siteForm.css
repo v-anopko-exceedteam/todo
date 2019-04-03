@@ -1,0 +1,27 @@
+.siteForm {
+  width: 100%;
+  max-width: 400px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  overflow: auto;
+}
+
+.siteForm__message {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 15px;
+}
+
+.siteForm__message--error {
+  color: red;
+}
+
+.siteForm__message--success {
+  color: green;
+}
