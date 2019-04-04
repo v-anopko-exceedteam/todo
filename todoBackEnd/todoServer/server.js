@@ -2,13 +2,9 @@ const express      = require('express'),
       app          = express(),
       mongoDb      = require('mongodb'),
       MongoClient  = mongoDb.MongoClient,
-<<<<<<< HEAD
-      todoDbClient = new MongoClient("mongodb://localhost:27017/", { useNewUrlParser: true });
-=======
       todoDbClient = new MongoClient("mongodb://localhost:27017/", { useNewUrlParser: true }),
       bodyParser   = require('body-parser'),
       bcrypt       = require('bcrypt');
->>>>>>> fd085e04da32cadfdeefdab376484fb59f027bb1
 
 let dbClient;
 
@@ -16,17 +12,11 @@ todoDbClient.connect((err, client) => {
   if (err) return console.log(err);
 
   const db = client.db('todoDB'),
-<<<<<<< HEAD
-        collection = db.collection('listItem');
-
-  app.locals.collection = collection;
-=======
         listItemCollection = db.collection('listItem'),
         usersCollection = db.collection('users');
 
   app.locals.listItemCollection = listItemCollection;
   app.locals.usersCollection = usersCollection;
->>>>>>> fd085e04da32cadfdeefdab376484fb59f027bb1
   dbClient = client;
 
   app.listen(3001, () => {
@@ -39,12 +29,6 @@ app.use((req, res, next) => { // permission for cross-domain requests
   next();
 });
 
-<<<<<<< HEAD
-app.get('/', (req, res) => { // handler for send of all todo items
-  const collection = req.app.locals.collection;
-
-  collection.find().toArray((err, todoItems) => {
-=======
 app.use(bodyParser.text());
 
 app.post('/', (req, res) => { // handler for send of all todo items
@@ -54,7 +38,6 @@ app.post('/', (req, res) => { // handler for send of all todo items
         userId = req.body;
 
   listItemCollection.find({userId}).toArray((err, todoItems) => {
->>>>>>> fd085e04da32cadfdeefdab376484fb59f027bb1
     if (err) return console.log(err);
 
     res.send(todoItems);
@@ -62,18 +45,11 @@ app.post('/', (req, res) => { // handler for send of all todo items
 });
 
 app.get('/add/:element', (req, res) => { // handler fot add new todo item in DB
-<<<<<<< HEAD
-  const newElem    = JSON.parse(req.params.element),
-        collection = req.app.locals.collection;
-
-  collection.insertOne(newElem, (err, result) => {
-=======
 
   const newElem = JSON.parse(req.params.element),
         listItemCollection = req.app.locals.listItemCollection;
 
   listItemCollection.insertOne(newElem, (err, result) => {
->>>>>>> fd085e04da32cadfdeefdab376484fb59f027bb1
     if (err) return console.log(err);
 
     const [addedItem] = result.ops;
@@ -83,43 +59,26 @@ app.get('/add/:element', (req, res) => { // handler fot add new todo item in DB
 });
 
 app.get('/delete/:idToDelete', (req, res) => { // handler for delete item from DB
-<<<<<<< HEAD
-  const collection = req.app.locals.collection,
-        elementId  = new mongoDb.ObjectID(req.params.idToDelete);
-
-  collection.deleteOne({_id: elementId}, (err, result) => {
-=======
   const listItemCollection = req.app.locals.listItemCollection,
         elementId  = new mongoDb.ObjectID(req.params.idToDelete);
 
   listItemCollection.deleteOne({_id: elementId}, (err, result) => {
->>>>>>> fd085e04da32cadfdeefdab376484fb59f027bb1
     if (err) return console.log(err);
   });
 });
 
 app.get('/update/:idToUpdate', (req, res) => { // handler for update todo item
-<<<<<<< HEAD
-  const collection = req.app.locals.collection,
-        newElem    = JSON.parse(req.params.idToUpdate),
-        newElemId  = new mongoDb.ObjectID(newElem._id);
-
-  collection.updateOne(
-=======
 
   const listItemCollection = req.app.locals.listItemCollection,
         newElem    = JSON.parse(req.params.idToUpdate),
         newElemId  = new mongoDb.ObjectID(newElem._id);
 
   listItemCollection.updateOne(
->>>>>>> fd085e04da32cadfdeefdab376484fb59f027bb1
     {_id: newElemId},
     {$set: {done: newElem.done, important: newElem.important}}
   );
 });
 
-<<<<<<< HEAD
-=======
 // sign in and registration
 
 app.post('/registration', (req, res) => {
@@ -179,7 +138,6 @@ app.post('/sign_in', (req, res) => {
                  })
                  .catch((err) => res.send(signInError));
 });
->>>>>>> fd085e04da32cadfdeefdab376484fb59f027bb1
 process.on("SIGINT", () => {
   dbClient.close();
   process.exit();
