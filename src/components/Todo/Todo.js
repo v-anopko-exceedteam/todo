@@ -28,7 +28,7 @@ export default class Todo extends Component {
     this.todoService.getAllTodoElement(this.props.userId)
                     .then((todoItems) => this.setState({todoData: todoItems}));
 
-    // создание toDo элемента
+    // create toDo element
     this.createToDoItem = (label) => {
       return {
         label,
@@ -39,10 +39,10 @@ export default class Todo extends Component {
     };
 
     /*
-    вспоогательный метод для для изменения состояния.
-    arr - массив состояний,
-    id - элемент который нужно изенить,
-    propName - имя свойства
+    method for change state.
+    arr - state array,
+    id - element for delete,
+    propName - property name
     */
     this.toggleProperty = (arr, id, propName) => {
       const idx      = arr.findIndex( (el) => el._id === id),
@@ -59,7 +59,7 @@ export default class Todo extends Component {
       return (newArray);
     };
 
-    // фильтрация элементов списка
+    // filter list items
     this.filterElements = (filterName) => {
       const elements = this.state.todoData;
 
@@ -75,7 +75,7 @@ export default class Todo extends Component {
       }
     };
 
-    // Обработчик события удаления элемента списка по клику
+    // delete item on click
     this.deleteItem = (deleteItemId) => {
       this.todoService.deleteTodoElement(deleteItemId)
                       .then((deleteResult) => {
@@ -95,7 +95,7 @@ export default class Todo extends Component {
                       });
     };
 
-    // Обработчик события добавления элемента списка по клику
+    // add item on click
     this.addItemOnClick = (text) => {
       const newListElement = this.createToDoItem(text);
 
@@ -109,7 +109,7 @@ export default class Todo extends Component {
                       });
     };
 
-    // обработчик события нажатия done
+    // toggle property done
     this.onToggleDone = (id) => {
       this.setState(({todoData}) => {
         return ({
@@ -118,7 +118,7 @@ export default class Todo extends Component {
       });
     };
 
-    // обработчик события нажатия important
+    // toggle property important
     this.onToggleImportant = (id) => {
       this.setState(({todoData}) => {
         return({
@@ -127,27 +127,21 @@ export default class Todo extends Component {
       });
     };
 
-    // обработчик filterElementsOnClick - принимает имя фильтра
     this.filterElementsOnClick = (filterName) => {
       let filterResult;
 
-      this.setState(({filterMode}) => {
-        return({
-          filterMode: filterName,
-        });
-      });
+      this.setState({ filterMode: filterName });
 
       filterResult = this.filterElements(filterName);
 
       return filterResult;
     };
 
-    // обработчик searchElementOnChange - принимает строку из поля поиска
     this.searchElementOnChange = (str) => {
       this.setState({term: str});
     };
 
-    // поиск по списку
+    // list search
     this.searchFilter = (elements, str) => {
       return elements.filter((element) => {
         if (str == 0) {
