@@ -11,13 +11,23 @@ export default class TodoDataService {
     return responseBody;
   }
 
-  async getAllTodoElement(userId) {
+  async getAllTodoElement(userId = '') {
     const allTodoElement = await this.serviceRequest('', '', {
       method: 'post',
       body: userId,
     });
 
     return allTodoElement;
+  }
+
+  async checkToken() {
+    const response = await this.serviceRequest('check_token', '', {
+      method: 'post',
+      body: this.getToken(),
+    }),
+    userId = response.userId;
+    
+    return userId;
   }
 
   async addNewTodoElement(newElem) {
@@ -30,8 +40,10 @@ export default class TodoDataService {
     this.serviceRequest('update/', encodeURIComponent(JSON.stringify(elemToUpdate)));
   }
 
-  deleteTodoElement(elemId) {
-    this.serviceRequest('delete/', elemId);
+  async deleteTodoElement(elemId) {
+    const deleteResult = await this.serviceRequest('delete/', elemId);
+
+    return deleteResult;
   }
 
   async registration(userInfo) {
@@ -44,11 +56,26 @@ export default class TodoDataService {
   }
 
   async signIn(user) {
-    const userId = await this.serviceRequest('sign_in', '', {
-      method: 'post',
-      body: JSON.stringify(user),
-    });
+    const signInInfo = await this.serviceRequest('sign_in', '', {
+            method: 'post',
+            body: JSON.stringify(user),
+          }),
+          {token} = signInInfo;
 
-    return userId;
+    this.setToken(token);
+
+    return signInInfo;
+  }
+
+  setToken(token, tokenName = 'TodoApp verify') {
+    localStorage.setItem(tokenName, token);
+  }
+
+  getToken(tokenName = 'TodoApp verify') {
+    return(localStorage.getItem(tokenName));
+  }
+
+  removeToken(tokenName = 'TodoApp verify') {
+    localStorage.removeItem(tokenName);
   }
 }

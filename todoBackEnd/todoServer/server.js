@@ -4,7 +4,9 @@ const express      = require('express'),
       MongoClient  = mongoDb.MongoClient,
       todoDbClient = new MongoClient("mongodb://localhost:27017/", { useNewUrlParser: true }),
       bodyParser   = require('body-parser'),
-      bcrypt       = require('bcrypt');
+      bcrypt       = require('bcrypt'),
+      jwt          = require('jsonwebtoken'),
+      secretKey    = 'h4J8u8H3';
 
 let dbClient;
 
@@ -32,7 +34,7 @@ app.use((req, res, next) => { // permission for cross-domain requests
 app.use(bodyParser.text());
 
 app.post('/', (req, res) => { // handler for send of all todo items
-  if (!req.body) return res.sendStatus(400);
+  if (!req.body) return res.sendStatus(302);
 
   const listItemCollection = req.app.locals.listItemCollection,
         userId = req.body;
@@ -42,6 +44,24 @@ app.post('/', (req, res) => { // handler for send of all todo items
 
     res.send(todoItems);
   });
+});
+
+app.post('/check_token', (req, res) => { // handler for send of all todo items
+  if (!req.body || typeof req.body !== 'string') return res.send({message: 'Token is undefind'});
+
+  const usersCollection = req.app.locals.usersCollection,
+        token = req.body,
+        userId = new mongoDb.ObjectID(jwt.verify(token, secretKey).userId);
+
+  usersCollection.findOne({_id: userId})
+                 .then((user) => {
+                    if (user) {
+                      res.send({userId: user._id});
+                    } else {
+                      res.send('');
+                    }
+                 })
+                 .catch((err) => res.send(''));
 });
 
 app.get('/add/:element', (req, res) => { // handler fot add new todo item in DB
@@ -64,6 +84,8 @@ app.get('/delete/:idToDelete', (req, res) => { // handler for delete item from D
 
   listItemCollection.deleteOne({_id: elementId}, (err, result) => {
     if (err) return console.log(err);
+
+    res.send(true);
   });
 });
 
@@ -73,10 +95,16 @@ app.get('/update/:idToUpdate', (req, res) => { // handler for update todo item
         newElem    = JSON.parse(req.params.idToUpdate),
         newElemId  = new mongoDb.ObjectID(newElem._id);
 
-  listItemCollection.updateOne(
-    {_id: newElemId},
-    {$set: {done: newElem.done, important: newElem.important}}
-  );
+  try {
+    listItemCollection.updateOne(
+      {_id: newElemId},
+      {$set: {done: newElem.done, important: newElem.important}}
+    );
+
+    res.send(true);
+  } catch (err) {
+    res.send(err);
+  }
 });
 
 // sign in and registration
@@ -89,12 +117,12 @@ app.post('/registration', (req, res) => {
         {login: userLogin,
          name: userName,
          secret: userSecret} = userInfo,
-         registrationError = {showMessage: true, success: false, registrationDescription: 'Во время регистрации произошла ошибка.'};
+         registrationError = {showMessage: true, success: false, registrationDescription: 'An error occurred during registration.'};
 
   usersCollection.findOne({login: userLogin})
                  .then((findResult) => {
                     if (findResult) {
-                      return res.send({showMessage: true, success: false, registrationDescription: `Пользователь с логином "${userLogin}" уже зарегистрирован.`});
+                      return res.send({showMessage: true, success: false, registrationDescription: `User with login "${userLogin}" is already registered.`});
                     } else {
                       bcrypt.genSalt(10, (err, salt) => {
                         if (err) return res.send(registrationError);
@@ -103,7 +131,7 @@ app.post('/registration', (req, res) => {
                           if (err) return res.send(registrationError);
 
                           usersCollection.insertOne({...userInfo, secret: hash})
-                                         .then((insertResult) => res.send({showMessage: true, success: true, registrationDescription: 'Регистрация прошла успешно.'}))
+                                         .then((insertResult) => res.send({showMessage: true, success: true, registrationDescription: 'Registration completed successfully.'}))
                                          .catch((insertErr) => res.send(registrationError));
                         });
                       });
@@ -117,8 +145,8 @@ app.post('/sign_in', (req, res) => {
 
   const {login, secret}      = JSON.parse(req.body),
         usersCollection      = req.app.locals.usersCollection,
-        signInError          = {userId: '', showMessage: true, success: false, signInDescription: 'При входе в систему произошла ошибка.'},
-        loginOrPasswordError = {userId: '', showMessage: true, success: false, signInDescription: 'Неправильно введен логин или пароль.'};
+        signInError          = {userId: '', showMessage: true, success: false, signInDescription: 'Error log in.'},
+        loginOrPasswordError = {userId: '', showMessage: true, success: false, signInDescription: 'Incorrect username or password.'};
 
   usersCollection.findOne({login: login})
                  .then(({_id, name, login, secret: secretFromDB}) => {
@@ -127,7 +155,9 @@ app.post('/sign_in', (req, res) => {
                         if (err) return res.send(signInError);
 
                         if (compareResult) {
-                          return res.send({userId: _id, showMessage: false, success: true, signInDescription: ''});
+                          const token = jwt.sign({ userId: _id }, secretKey, { expiresIn: 60 * 60 });
+
+                          return res.send({userId: _id, showMessage: false, success: true, signInDescription: '', token: token});
                         } else {
                           return res.send(loginOrPasswordError);
                         }
@@ -136,8 +166,9 @@ app.post('/sign_in', (req, res) => {
                      return res.send(loginOrPasswordError);
                    }
                  })
-                 .catch((err) => res.send(signInError));
+                 .catch((err) => res.send(loginOrPasswordError));
 });
+
 process.on("SIGINT", () => {
   dbClient.close();
   process.exit();

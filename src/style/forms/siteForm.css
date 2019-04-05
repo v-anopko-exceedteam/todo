@@ -1,6 +1,6 @@
 .siteForm {
   width: 100%;
-  max-width: 400px;
+  max-width: 405px;
   display: -webkit-flex;
   display: flex;
   -webkit-flex-direction: column;
@@ -10,6 +10,7 @@
   top: 50%;
   transform: translate(-50%, -50%);
   overflow: auto;
+  padding: 0px 5px;
 }
 
 .siteForm__message {

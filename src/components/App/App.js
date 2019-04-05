@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {BrowserRouter as Router, Route, Redirect} from 'react-router-dom';
+import {BrowserRouter as Router, Route} from 'react-router-dom';
 import Todo from './../Todo';
 import SignIn from './../SignIn';
 import Registration from './../Registration';
@@ -12,6 +12,7 @@ export default class App extends Component {
     super();
 
     this.todoService = new TodoDataService();
+
     this.state = {
       authorized: false,
       userId: '',
@@ -24,6 +25,22 @@ export default class App extends Component {
         authorized: true,
       });
     };
+
+    this.logOut = () => {
+      this.todoService.removeToken();
+
+      this.setState({
+        userId: '',
+        authorized: false,
+      });
+    };
+  }
+
+  componentDidMount() {
+    this.todoService.checkToken()
+                    .then((userId) => {
+                      if (userId) this.enterInTodo(userId);
+                    });
   }
 
   render() {
@@ -35,7 +52,7 @@ export default class App extends Component {
 
     return(
       <Router>
-        <Route path="/" render={() => <Todo authorized={authorized} userId={userId} />} exact />
+        <Route path="/" render={() => <Todo authorized={authorized} userId={userId} onLogOut={this.logOut} />} exact />
 
         <Route path="/registration" component={Registration} />
 

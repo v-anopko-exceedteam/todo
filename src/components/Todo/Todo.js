@@ -77,19 +77,22 @@ export default class Todo extends Component {
 
     // Обработчик события удаления элемента списка по клику
     this.deleteItem = (deleteItemId) => {
-      this.setState(({todoData}) => {
-        const idx         = todoData.findIndex( (el) => el._id === deleteItemId),
-              newTodoData = [
-                ...todoData.slice(0, idx),
-                ...todoData.slice(idx + 1),
-              ];
+      this.todoService.deleteTodoElement(deleteItemId)
+                      .then((deleteResult) => {
+                        if (deleteResult) {
+                          this.setState(({todoData}) => {
+                            const idx         = todoData.findIndex( (el) => el._id === deleteItemId),
+                                  newTodoData = [
+                                    ...todoData.slice(0, idx),
+                                    ...todoData.slice(idx + 1),
+                                  ];
 
-        return({
-          todoData: newTodoData,
-        });
-      });
-
-      this.todoService.deleteTodoElement(deleteItemId);
+                            return({
+                              todoData: newTodoData,
+                            });
+                          });
+                        }
+                      });
     };
 
     // Обработчик события добавления элемента списка по клику
@@ -166,7 +169,7 @@ export default class Todo extends Component {
 
   render() {
     const {todoData, term, filterMode, loader} = this.state,
-          {authorized} = this.props;
+          {authorized, onLogOut} = this.props;
 
     if (!authorized) {
       return(<Redirect to="/sign_in" />);
@@ -183,7 +186,8 @@ export default class Todo extends Component {
     return (
       <div className="todo-app">
         <AppHeader toDo={todoCount}
-                   done={doneCount} />
+                   done={doneCount}
+                   onLogOut={onLogOut} />
 
         <div className="top-panel d-flex">
           <SearchPanel searchElementOnChange={this.searchElementOnChange} />
